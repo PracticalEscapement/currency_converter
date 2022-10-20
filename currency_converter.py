@@ -1,11 +1,13 @@
 from forex_python.converter import CurrencyRates # Get current rates
-from forex_python.converter import CurrencyCodes # Get Currency symbols
+from forex_python.converter import CurrencyCodes
+
 
 class CurrencyConversion:
 	def __init__(self, initail_code=None, converted_code=None, amount=1):
 		self.initial_code = initail_code
 		self.converted_code = converted_code
 		self.amount = amount
+		self.requests = 1
 		self.rate = 1
 		self.valid_codes = ('AUD', 'BGN', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP', 'HKD', 'HRK', 'HUF', 'IDR', 'ILS', 'INR', 'JPY', 'KRW', 'MXN', 'MYR', 'NOK', 'NZD', 'PHP', 'PLN', 'RON', 'RUB', 'SEK', 'SGD', 'THB', 'TRY', 'USD', 'ZAR')
 		self.errors = []
@@ -37,23 +39,28 @@ class CurrencyConversion:
 			return False
 	
 	def get_current_rate(self):
+		if self.requests >= 3:
+			return print('Max number of requests reached!')
+		
 		currency_rate = CurrencyRates()
 		self.rate = currency_rate.get_rate(self.initial_code, self.converted_code)
-		self.convert_total_amount()
-	
-	def convert_total_amount(self):
+		self.requests += 1
 		print(self.rate * self.amount)
-		count = 0
-		different_amount = input('\nWould you like to convert another amount (Y/N)?: ')
-		while different_amount != 'N' and count < 5:
-			get_different_amount = float(input('\nGive the amount to convert or "N" to quit: '))
-			if get_different_amount == 'N':
-				break
-			total = self.rate * get_different_amount
-			print(total)
-			count += 1
-		if count >= 5:
-			print('Max number of conversions reached!')
+		
+		get_additional_amount = input('\nWould you like to convert another amount(Y/N)?: ')
+		if get_additional_amount == 'Y':
+			self.additonal_amount()
+
+	def additonal_amount(self):
+		data = {
+			"from_code": self.initial_code,
+			"to_code": self.converted_code,
+			"amt": input('\nGive the amount to convert: ')
+		}
+		
+		valid_input = self.validate_user_input(data)
+		if valid_input:
+			self.get_current_rate()
 
 	def call(self):
 		user_input = self.get_user_input()
